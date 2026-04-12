@@ -249,6 +249,32 @@
             font-size: 0.95rem;
         }
 
+        .contact-text a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .contact-text a:hover {
+            color: var(--highlight);
+        }
+
+        /* WhatsApp specific styling */
+        .whatsapp-item .contact-icon {
+            background: rgba(37, 211, 102, 0.1);
+            border-color: rgba(37, 211, 102, 0.2);
+            color: #25D366;
+        }
+
+        .whatsapp-item .contact-text a {
+            color: #25D366;
+            font-weight: 500;
+        }
+
+        .whatsapp-item .contact-text a:hover {
+            color: #128C7E;
+        }
+
         .contact-form {
             background: var(--secondary);
             padding: 2.5rem;
@@ -320,6 +346,31 @@
         .submit-btn:hover {
             background: #d63d56;
             transform: translateY(-2px);
+        }
+
+        /* WhatsApp Float Button */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: #25D366;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.8rem;
+            text-decoration: none;
+            box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+
+        .whatsapp-float:hover {
+            transform: scale(1.1) translateY(-5px);
+            box-shadow: 0 8px 30px rgba(37, 211, 102, 0.6);
         }
 
         /* Footer */
@@ -463,6 +514,14 @@
             .form-row {
                 grid-template-columns: 1fr;
             }
+
+            .whatsapp-float {
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+            }
         }
 
         @media (max-width: 576px) {
@@ -535,6 +594,13 @@
                             <p>+880 1300-856680<br>+1 (682) 304-8905</p>
                         </div>
                     </div>
+                    <div class="contact-item whatsapp-item">
+                        <div class="contact-icon">💬</div>
+                        <div class="contact-text">
+                            <h4>WhatsApp</h4>
+                            <p><a href="https://wa.me/8801300856680" target="_blank">+880 1300-856680</a><br>Click to chat instantly</p>
+                        </div>
+                    </div>
                     <div class="contact-item">
                         <div class="contact-icon">🕐</div>
                         <div class="contact-text">
@@ -589,6 +655,11 @@
             </div>
         </div>
     </section>
+
+    <!-- WhatsApp Float Button -->
+    <a href="https://wa.me/8801300856680" target="_blank" class="whatsapp-float" title="Chat on WhatsApp">
+        💬
+    </a>
 
     <!-- Footer -->
     <footer>
