@@ -22,6 +22,8 @@
             --text-light: #f5f5f5;
             --text-muted: #b8b8b8;
             --gradient-1: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            --whatsapp-green: #25D366;
+            --whatsapp-dark: #128C7E;
         }
 
         html {
@@ -259,20 +261,164 @@
             color: var(--highlight);
         }
 
-        /* WhatsApp specific styling */
-        .whatsapp-item .contact-icon {
-            background: rgba(37, 211, 102, 0.1);
-            border-color: rgba(37, 211, 102, 0.2);
-            color: #25D366;
+        /* WhatsApp Section - Mobile Only */
+        .whatsapp-section {
+            display: none;
+            background: linear-gradient(135deg, rgba(37, 211, 102, 0.1) 0%, rgba(18, 140, 126, 0.1) 100%);
+            border: 2px solid var(--whatsapp-green);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
         }
 
-        .whatsapp-item .contact-text a {
-            color: #25D366;
-            font-weight: 500;
+        .whatsapp-section .section-tag {
+            color: var(--whatsapp-green);
         }
 
-        .whatsapp-item .contact-text a:hover {
-            color: #128C7E;
+        .whatsapp-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--whatsapp-green);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+        }
+
+        .whatsapp-btn:hover {
+            background: var(--whatsapp-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+        }
+
+        /* Agent Section - Automated SMS */
+        .agent-section {
+            background: var(--secondary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .agent-section h4 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .agent-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            padding: 0.3rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .agent-status::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .sms-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .sms-form input,
+        .sms-form textarea {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: white;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .sms-form input:focus,
+        .sms-form textarea:focus {
+            outline: none;
+            border-color: var(--highlight);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .sms-form textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .sms-btn {
+            background: var(--highlight);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .sms-btn:hover {
+            background: #d63d56;
+            transform: translateY(-2px);
+        }
+
+        .sms-btn.sending {
+            background: #f59e0b;
+        }
+
+        .sms-btn.sent {
+            background: #22c55e;
+        }
+
+        .sms-history {
+            margin-top: 1.5rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .sms-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 3px solid var(--highlight);
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.9rem;
+        }
+
+        .sms-item .time {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-top: 0.3rem;
         }
 
         .contact-form {
@@ -346,31 +492,6 @@
         .submit-btn:hover {
             background: #d63d56;
             transform: translateY(-2px);
-        }
-
-        /* WhatsApp Float Button */
-        .whatsapp-float {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 60px;
-            height: 60px;
-            background: #25D366;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.8rem;
-            text-decoration: none;
-            box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
-            transition: all 0.3s ease;
-            z-index: 999;
-        }
-
-        .whatsapp-float:hover {
-            transform: scale(1.1) translateY(-5px);
-            box-shadow: 0 8px 30px rgba(37, 211, 102, 0.6);
         }
 
         /* Footer */
@@ -467,7 +588,7 @@
             transform: translateY(0);
         }
 
-        /* Responsive */
+        /* Mobile Responsive */
         @media (max-width: 968px) {
             .nav-links {
                 position: fixed;
@@ -515,12 +636,9 @@
                 grid-template-columns: 1fr;
             }
 
-            .whatsapp-float {
-                bottom: 20px;
-                right: 20px;
-                width: 50px;
-                height: 50px;
-                font-size: 1.5rem;
+            /* Show WhatsApp section only on mobile */
+            .whatsapp-section {
+                display: block;
             }
         }
 
@@ -532,6 +650,13 @@
 
             .social-links {
                 justify-content: center;
+            }
+        }
+
+        /* PC/Desktop - Hide WhatsApp section */
+        @media (min-width: 969px) {
+            .whatsapp-section {
+                display: none !important;
             }
         }
     </style>
@@ -572,7 +697,43 @@
                 <h3>Let's Discuss Your Future</h3>
                 <p>Our team of expert counselors is ready to guide you through every step of your international education journey.</p>
                 
-                <div class="contact-details">
+                <!-- WhatsApp Section - Mobile Only -->
+                <div class="whatsapp-section">
+                    <span class="section-tag">💬 Quick Chat</span>
+                    <h4>Chat with us on WhatsApp</h4>
+                    <p style="color: var(--text-muted); margin: 1rem 0;">Get instant responses to your queries</p>
+                    <a href="https://wa.me/8801300856680" target="_blank" class="whatsapp-btn">
+                        <span>💬</span>
+                        <span>Chat Now: +880 1300-856680</span>
+                    </a>
+                </div>
+
+                <!-- Agent Section - Automated SMS -->
+                <div class="agent-section fade-in">
+                    <h4>🤖 Agent SMS Service</h4>
+                    <span class="agent-status">Agent Online</span>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
+                        Our automated agent can send instant SMS updates to your phone.
+                    </p>
+                    <form class="sms-form" id="smsForm">
+                        <input type="tel" id="smsPhone" placeholder="Enter your phone number" required>
+                        <textarea id="smsMessage" placeholder="Enter your message or select template..." required></textarea>
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+                            <button type="button" class="template-btn" onclick="setTemplate('I need help with university selection')">Uni Selection</button>
+                            <button type="button" class="template-btn" onclick="setTemplate('Please call me back')">Call Back</button>
+                            <button type="button" class="template-btn" onclick="setTemplate('I want to check my application status')">Check Status</button>
+                        </div>
+                        <button type="submit" class="sms-btn" id="smsBtn">
+                            <span>📱</span>
+                            <span>Send SMS via Agent</span>
+                        </button>
+                    </form>
+                    <div class="sms-history" id="smsHistory">
+                        <!-- SMS history will appear here -->
+                    </div>
+                </div>
+
+                <div class="contact-details" style="margin-top: 2rem;">
                     <div class="contact-item">
                         <div class="contact-icon">📍</div>
                         <div class="contact-text">
@@ -592,13 +753,6 @@
                         <div class="contact-text">
                             <h4>Call Us</h4>
                             <p>+880 1300-856680<br>+1 (682) 304-8905</p>
-                        </div>
-                    </div>
-                    <div class="contact-item whatsapp-item">
-                        <div class="contact-icon">💬</div>
-                        <div class="contact-text">
-                            <h4>WhatsApp</h4>
-                            <p><a href="https://wa.me/8801300856680" target="_blank">+880 1300-856680</a><br>Click to chat instantly</p>
                         </div>
                     </div>
                     <div class="contact-item">
@@ -655,11 +809,6 @@
             </div>
         </div>
     </section>
-
-    <!-- WhatsApp Float Button -->
-    <a href="https://wa.me/8801300856680" target="_blank" class="whatsapp-float" title="Chat on WhatsApp">
-        💬
-    </a>
 
     <!-- Footer -->
     <footer>
@@ -747,15 +896,13 @@
             observer.observe(el);
         });
 
-        // Form submission
+        // Contact Form submission
         document.getElementById('contactForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // Get form data
             const formData = new FormData(this);
             const data = Object.fromEntries(formData);
             
-            // Show success message (in production, send to server)
             const btn = this.querySelector('.submit-btn');
             const originalText = btn.innerHTML;
             
@@ -770,6 +917,75 @@
             
             console.log('Form submitted:', data);
         });
+
+        // SMS Template buttons
+        function setTemplate(text) {
+            document.getElementById('smsMessage').value = text;
+        }
+
+        // SMS Form submission - Automated Agent
+        document.getElementById('smsForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const phone = document.getElementById('smsPhone').value;
+            const message = document.getElementById('smsMessage').value;
+            const btn = document.getElementById('smsBtn');
+            const history = document.getElementById('smsHistory');
+            
+            if (!phone || !message) return;
+            
+            // Simulate sending
+            btn.classList.add('sending');
+            btn.innerHTML = '<span>⏳</span><span>Sending...</span>';
+            
+            setTimeout(() => {
+                // Add to history
+                const smsItem = document.createElement('div');
+                smsItem.className = 'sms-item';
+                smsItem.innerHTML = `
+                    <div><strong>To:</strong> ${phone}</div>
+                    <div><strong>Message:</strong> ${message}</div>
+                    <div class="time">Sent at: ${new Date().toLocaleTimeString()} by Agent</div>
+                `;
+                history.insertBefore(smsItem, history.firstChild);
+                
+                // Success state
+                btn.classList.remove('sending');
+                btn.classList.add('sent');
+                btn.innerHTML = '<span>✓</span><span>Sent Successfully!</span>';
+                
+                // Reset after 2 seconds
+                setTimeout(() => {
+                    btn.classList.remove('sent');
+                    btn.innerHTML = '<span>📱</span><span>Send SMS via Agent</span>';
+                    this.reset();
+                }, 2000);
+                
+                // In production, you would send this to your backend
+                console.log('Agent SMS sent:', { phone, message, timestamp: new Date() });
+            }, 1500);
+        });
+
+        // Add template button styles dynamically
+        const style = document.createElement('style');
+        style.textContent = `
+            .template-btn {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                color: var(--text-muted);
+                padding: 0.4rem 0.8rem;
+                border-radius: 20px;
+                font-size: 0.8rem;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+            .template-btn:hover {
+                background: var(--highlight);
+                border-color: var(--highlight);
+                color: white;
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html>
