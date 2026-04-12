@@ -297,7 +297,7 @@
             box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
         }
 
-        /* Agent Section - Email Notification System */
+        /* Agent Section - EmailJS Notification System */
         .agent-section {
             background: var(--secondary);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -776,16 +776,17 @@
                     </a>
                 </div>
 
-                <!-- Agent Section - Email Notification System -->
+                <!-- Agent Section - EmailJS Notification System -->
                 <div class="agent-section fade-in">
                     <h4>🤖 Agent Notification Service</h4>
                     <span class="agent-status">Agent Online</span>
                     
                     <div class="agent-info">
-                        <strong>How it works:</strong> When you submit a message below, our agent will instantly send an email notification to <strong>usxplore@gmail.com</strong> with your details. This ensures immediate attention to your inquiry.
+                        <strong>How it works:</strong> When you submit a message below, our agent will instantly send an email notification to <strong>usxplore@gmail.com</strong> with your details.
                     </div>
 
                     <form class="sms-form" id="smsForm">
+                        <input type="text" id="smsName" placeholder="Enter your name" required>
                         <input type="tel" id="smsPhone" placeholder="Enter your phone number" required>
                         <input type="email" id="smsEmail" placeholder="Enter your email (optional)">
                         <textarea id="smsMessage" placeholder="Enter your message or select a template..." required></textarea>
@@ -933,15 +934,22 @@
         </div>
     </footer>
 
+    <!-- EmailJS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    
     <script>
-        // Configuration
-        const CONFIG = {
-            AGENT_EMAIL: 'usxplore@gmail.com',
-            // For Vercel deployment, set this to your backend API endpoint
-            API_ENDPOINT: '/api/send-email', // Change this to your actual API endpoint
-            // Fallback to mailto if no API available (for testing)
-            USE_MAILTO_FALLBACK: true
+        // EmailJS Configuration - Your Credentials
+        const EMAILJS_CONFIG = {
+            PUBLIC_KEY: 'g91glmr4XiGNNqc5e',
+            SERVICE_ID: 'service_fsksde5',
+            TEMPLATE_ID: 'template_0c9ftee',
+            AGENT_EMAIL: 'usxplore@gmail.com'
         };
+
+        // Initialize EmailJS
+        (function() {
+            emailjs.init(EMAILJS_CONFIG.PUBLIC_KEY);
+        })();
 
         // Navigation scroll effect
         const navbar = document.getElementById('navbar');
@@ -1007,80 +1015,42 @@
             console.log('Form submitted:', data);
         });
 
-        // Agent Email Notification System
+        // Agent Email Notification System using EmailJS
+        // Matches your template variables: {{name}}, {{phone}}, {{user_email}}, {{message}}, {{time}}
         document.getElementById('smsForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
+            const name = document.getElementById('smsName').value;
             const phone = document.getElementById('smsPhone').value;
             const email = document.getElementById('smsEmail').value;
             const message = document.getElementById('smsMessage').value;
             const btn = document.getElementById('smsBtn');
             const history = document.getElementById('smsHistory');
             
-            if (!phone || !message) return;
+            if (!name || !phone || !message) return;
             
             // UI Loading State
             btn.disabled = true;
             btn.classList.add('sending');
             btn.innerHTML = '<span>⏳</span><span>Sending to Agent...</span>';
             
-            // Prepare email content
-            const emailSubject = `New Agent Notification from ${phone}`;
-            const emailBody = `
-Agent Notification - US Xplore Limited
-=====================================
-
-From: ${phone}
-Email: ${email || 'Not provided'}
-Time: ${new Date().toLocaleString()}
-User Agent: ${navigator.userAgent}
-
-Message:
-${message}
-
----
-This notification was sent automatically by the US Xplore Agent System.
-            `;
-            
             try {
-                // Method 1: Try API endpoint (for Vercel with backend)
-                if (!CONFIG.USE_MAILTO_FALLBACK) {
-                    const response = await fetch(CONFIG.API_ENDPOINT, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            to: CONFIG.AGENT_EMAIL,
-                            subject: emailSubject,
-                            body: emailBody,
-                            phone: phone,
-                            userEmail: email,
-                            message: message,
-                            timestamp: new Date().toISOString()
-                        })
-                    });
-                    
-                    if (!response.ok) throw new Error('API failed');
-                }
+                // Send email using EmailJS with variables matching your template
+                const templateParams = {
+                    name: name,                    // {{name}} in your template
+                    phone: phone,                  // {{phone}} in your template
+                    user_email: email || 'Not provided',  // {{user_email}} in your template
+                    message: message,              // {{message}} in your template
+                    time: new Date().toLocaleString()     // {{time}} in your template
+                };
                 
-                // Method 2: Mailto fallback (opens email client)
-                // This ensures the notification always goes through even without backend
-                const mailtoLink = `mailto:${CONFIG.AGENT_EMAIL}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+                const response = await emailjs.send(
+                    EMAILJS_CONFIG.SERVICE_ID,
+                    EMAILJS_CONFIG.TEMPLATE_ID,
+                    templateParams
+                );
                 
-                // Create hidden link and click it
-                const link = document.createElement('a');
-                link.href = mailtoLink;
-                link.target = '_blank';
-                link.style.display = 'none';
-                document.body.appendChild(link);
-                
-                // Try to open email client
-                link.click();
-                document.body.removeChild(link);
-                
-                // Also try to open in new window as backup
-                window.open(mailtoLink, '_blank');
+                console.log('EmailJS Response:', response);
                 
                 // Success UI
                 btn.classList.remove('sending');
@@ -1091,11 +1061,11 @@ This notification was sent automatically by the US Xplore Agent System.
                 const smsItem = document.createElement('div');
                 smsItem.className = 'sms-item sent';
                 smsItem.innerHTML = `
-                    <div><strong>To:</strong> ${CONFIG.AGENT_EMAIL}</div>
-                    <div><strong>From:</strong> ${phone}</div>
+                    <div><strong>To:</strong> ${EMAILJS_CONFIG.AGENT_EMAIL}</div>
+                    <div><strong>From:</strong> ${name} (${phone})</div>
                     <div><strong>Message:</strong> ${message.substring(0, 50)}${message.length > 50 ? '...' : ''}</div>
                     <div class="time">Sent at: ${new Date().toLocaleTimeString()}</div>
-                    <div class="status">✓ Email delivered to agent</div>
+                    <div class="status">✓ Email delivered via EmailJS (Status: ${response.status})</div>
                 `;
                 history.insertBefore(smsItem, history.firstChild);
                 
@@ -1108,7 +1078,7 @@ This notification was sent automatically by the US Xplore Agent System.
                 }, 3000);
                 
             } catch (error) {
-                console.error('Failed to send:', error);
+                console.error('EmailJS Error:', error);
                 
                 // Error UI
                 btn.classList.remove('sending');
@@ -1120,9 +1090,9 @@ This notification was sent automatically by the US Xplore Agent System.
                 smsItem.className = 'sms-item error';
                 smsItem.innerHTML = `
                     <div><strong>Failed to send</strong></div>
-                    <div>Please try again or contact directly</div>
+                    <div>Error: ${error.text || error.message || 'Unknown error'}</div>
                     <div class="time">${new Date().toLocaleTimeString()}</div>
-                    <div class="status">✗ Error: ${error.message}</div>
+                    <div class="status">✗ Please check your connection and try again</div>
                 `;
                 history.insertBefore(smsItem, history.firstChild);
                 
@@ -1133,24 +1103,6 @@ This notification was sent automatically by the US Xplore Agent System.
                 }, 3000);
             }
         });
-
-        // Alternative: Direct email API using EmailJS (recommended for Vercel static sites)
-        // To use EmailJS, include their SDK and configure:
-        /*
-        emailjs.init("YOUR_PUBLIC_KEY");
-        
-        // Then in submit handler:
-        emailjs.send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", {
-            to_email: CONFIG.AGENT_EMAIL,
-            phone: phone,
-            user_email: email,
-            message: message,
-            time: new Date().toLocaleString()
-        });
-        */
     </script>
-    
-    <!-- Optional: EmailJS SDK for production use without backend -->
-    <!-- <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script> -->
 </body>
 </html>
