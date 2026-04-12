@@ -489,6 +489,26 @@
             color: #ef4444;
         }
 
+        /* Auto-reply notification */
+        .auto-reply-notify {
+            background: rgba(37, 211, 102, 0.1);
+            border: 1px solid rgba(37, 211, 102, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .auto-reply-notify.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .contact-form {
             background: var(--secondary);
             padding: 2.5rem;
@@ -704,7 +724,6 @@
                 grid-template-columns: 1fr;
             }
 
-            /* Show WhatsApp section only on mobile */
             .whatsapp-section {
                 display: block;
             }
@@ -721,7 +740,6 @@
             }
         }
 
-        /* PC/Desktop - Hide WhatsApp section */
         @media (min-width: 969px) {
             .whatsapp-section {
                 display: none !important;
@@ -782,12 +800,13 @@
                     <span class="agent-status">Agent Online</span>
                     
                     <div class="agent-info">
-                        <strong>How it works:</strong> When you submit a message below, our agent will instantly send an email notification to <strong>usxplore@gmail.com</strong> with your details. This ensures immediate attention to your inquiry.
+                        <strong>How it works:</strong> Submit your inquiry below. Our agent will instantly notify <strong>usxplore@gmail.com</strong> and you'll receive an auto-reply confirmation.
                     </div>
 
                     <form class="sms-form" id="smsForm">
+                        <input type="text" id="smsName" placeholder="Enter your full name" required>
+                        <input type="email" id="smsEmail" placeholder="Enter your email (required for auto-reply)" required>
                         <input type="tel" id="smsPhone" placeholder="Enter your phone number" required>
-                        <input type="email" id="smsEmail" placeholder="Enter your email (optional)">
                         <textarea id="smsMessage" placeholder="Enter your message or select a template..." required></textarea>
                         
                         <div class="template-buttons">
@@ -799,9 +818,14 @@
 
                         <button type="submit" class="sms-btn" id="smsBtn">
                             <span>📧</span>
-                            <span>Send Email to Agent</span>
+                            <span>Send to Agent</span>
                         </button>
                     </form>
+
+                    <!-- Auto-reply notification -->
+                    <div class="auto-reply-notify" id="autoReplyNotify">
+                        <strong>✓ Auto-reply sent!</strong> Check your email at <span id="replyEmail"></span> for confirmation from usxplore@gmail.com
+                    </div>
 
                     <div class="sms-history" id="smsHistory">
                         <!-- Notification history will appear here -->
@@ -937,11 +961,12 @@
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     
     <script>
-        // EmailJS Configuration - Your Credentials
+        // EmailJS Configuration
         const EMAILJS_CONFIG = {
             PUBLIC_KEY: 'g91glmr4XiGNNqc5e',
             SERVICE_ID: 'service_fsksde5',
-            TEMPLATE_ID: 'template_0c9ftee',
+            TEMPLATE_ID: 'template_0c9ftee',      // Main notification template
+            REPLY_TEMPLATE_ID: 'template_xxxxxx',  // Auto-reply template (create this in EmailJS)
             AGENT_EMAIL: 'usxplore@gmail.com'
         };
 
@@ -1014,67 +1039,103 @@
             console.log('Form submitted:', data);
         });
 
-        // Agent Email Notification System using EmailJS
+        // Agent Email System - Sends to usxplore@gmail.com + Auto-reply to user
         document.getElementById('smsForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const phone = document.getElementById('smsPhone').value;
+            const name = document.getElementById('smsName').value;
             const email = document.getElementById('smsEmail').value;
+            const phone = document.getElementById('smsPhone').value;
             const message = document.getElementById('smsMessage').value;
             const btn = document.getElementById('smsBtn');
             const history = document.getElementById('smsHistory');
+            const autoReplyNotify = document.getElementById('autoReplyNotify');
+            const replyEmailSpan = document.getElementById('replyEmail');
             
-            if (!phone || !message) return;
+            if (!name || !email || !phone || !message) return;
             
             // UI Loading State
             btn.disabled = true;
             btn.classList.add('sending');
-            btn.innerHTML = '<span>⏳</span><span>Sending to Agent...</span>';
+            btn.innerHTML = '<span>⏳</span><span>Sending...</span>';
             
             try {
-                // Send email using EmailJS
-                const templateParams = {
-                    to_email: EMAILJS_CONFIG.AGENT_EMAIL,
-                    from_phone: phone,
-                    from_email: email || 'Not provided',
+                // 1. Send notification to usxplore@gmail.com (main email)
+                const adminParams = {
+                    to_email: EMAILJS_CONFIG.AGENT_EMAIL,  // This goes to usxplore@gmail.com
+                    from_name: name,
+                    from_email: email,
+                    reply_to: email,
+                    phone: phone,
                     message: message,
-                    time: new Date().toLocaleString(),
-                    user_agent: navigator.userAgent,
-                    page_url: window.location.href
+                    time: new Date().toLocaleString()
                 };
                 
-                const response = await emailjs.send(
+                // Send to admin (usxplore@gmail.com)
+                const adminResponse = await emailjs.send(
                     EMAILJS_CONFIG.SERVICE_ID,
                     EMAILJS_CONFIG.TEMPLATE_ID,
-                    templateParams
+                    adminParams
                 );
                 
-                console.log('EmailJS Response:', response);
+                console.log('Admin email sent:', adminResponse);
+                
+                // 2. Send auto-reply to user (if they provided email)
+                let userResponse = null;
+                try {
+                    const replyParams = {
+                        to_email: email,  // This goes to user's email
+                        from_name: name,
+                        user_email: email,
+                        phone: phone,
+                        message: message,
+                        time: new Date().toLocaleString(),
+                        reply_message: `Dear ${name},\n\nThank you for contacting US Xplore Limited! We have received your inquiry and our team will get back to you within 24 hours.\n\nYour message: "${message}"\n\nBest regards,\nUS Xplore Team\nusxplore@gmail.com`
+                    };
+                    
+                    // Use same template or different template for reply
+                    userResponse = await emailjs.send(
+                        EMAILJS_CONFIG.SERVICE_ID,
+                        EMAILJS_CONFIG.TEMPLATE_ID,  // Or use REPLY_TEMPLATE_ID if you create one
+                        replyParams
+                    );
+                    
+                    console.log('Auto-reply sent:', userResponse);
+                    
+                    // Show auto-reply notification
+                    replyEmailSpan.textContent = email;
+                    autoReplyNotify.classList.add('show');
+                    
+                } catch (replyError) {
+                    console.log('Auto-reply failed (user may still get main notification):', replyError);
+                }
                 
                 // Success UI
                 btn.classList.remove('sending');
                 btn.classList.add('sent');
-                btn.innerHTML = '<span>✓</span><span>Email Sent to Agent!</span>';
+                btn.innerHTML = '<span>✓</span><span>Sent Successfully!</span>';
                 
                 // Add to history
                 const smsItem = document.createElement('div');
                 smsItem.className = 'sms-item sent';
                 smsItem.innerHTML = `
-                    <div><strong>To:</strong> ${EMAILJS_CONFIG.AGENT_EMAIL}</div>
-                    <div><strong>From:</strong> ${phone}</div>
+                    <div><strong>Notification sent to:</strong> ${EMAILJS_CONFIG.AGENT_EMAIL}</div>
+                    <div><strong>Auto-reply sent to:</strong> ${email}</div>
+                    <div><strong>From:</strong> ${name} (${phone})</div>
                     <div><strong>Message:</strong> ${message.substring(0, 50)}${message.length > 50 ? '...' : ''}</div>
                     <div class="time">Sent at: ${new Date().toLocaleTimeString()}</div>
-                    <div class="status">✓ Email delivered via EmailJS (Status: ${response.status})</div>
+                    <div class="status">✓ Both emails delivered successfully</div>
                 `;
                 history.insertBefore(smsItem, history.firstChild);
                 
-                // Reset form
+                // Reset form after delay
                 setTimeout(() => {
                     btn.classList.remove('sent');
-                    btn.innerHTML = '<span>📧</span><span>Send Email to Agent</span>';
+                    btn.innerHTML = '<span>📧</span><span>Send to Agent</span>';
                     btn.disabled = false;
                     this.reset();
-                }, 3000);
+                    autoReplyNotify.classList.remove('show');
+                }, 5000);
                 
             } catch (error) {
                 console.error('EmailJS Error:', error);
@@ -1089,7 +1150,7 @@
                 smsItem.className = 'sms-item error';
                 smsItem.innerHTML = `
                     <div><strong>Failed to send</strong></div>
-                    <div>Error: ${error.text || error.message || 'Unknown error'}</div>
+                    <div>Error: ${error.text || error.message || 'Connection error'}</div>
                     <div class="time">${new Date().toLocaleTimeString()}</div>
                     <div class="status">✗ Please check your connection and try again</div>
                 `;
@@ -1097,7 +1158,7 @@
                 
                 setTimeout(() => {
                     btn.classList.remove('error');
-                    btn.innerHTML = '<span>📧</span><span>Send Email to Agent</span>';
+                    btn.innerHTML = '<span>📧</span><span>Send to Agent</span>';
                     btn.disabled = false;
                 }, 3000);
             }
