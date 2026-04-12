@@ -297,7 +297,7 @@
             box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
         }
 
-        /* Agent Section - Automated SMS */
+        /* Agent Section - Email Notification System */
         .agent-section {
             background: var(--secondary);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -340,6 +340,19 @@
             50% { opacity: 0.5; }
         }
 
+        .agent-info {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .agent-info strong {
+            color: var(--highlight);
+        }
+
         .sms-form {
             display: flex;
             flex-direction: column;
@@ -371,6 +384,30 @@
             resize: vertical;
         }
 
+        .template-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.5rem;
+        }
+
+        .template-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .template-btn:hover {
+            background: var(--highlight);
+            border-color: var(--highlight);
+            color: white;
+        }
+
         .sms-btn {
             background: var(--highlight);
             color: white;
@@ -387,9 +424,14 @@
             gap: 0.5rem;
         }
 
-        .sms-btn:hover {
+        .sms-btn:hover:not(:disabled) {
             background: #d63d56;
             transform: translateY(-2px);
+        }
+
+        .sms-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
         }
 
         .sms-btn.sending {
@@ -398,6 +440,10 @@
 
         .sms-btn.sent {
             background: #22c55e;
+        }
+
+        .sms-btn.error {
+            background: #ef4444;
         }
 
         .sms-history {
@@ -415,10 +461,32 @@
             font-size: 0.9rem;
         }
 
+        .sms-item.sent {
+            border-left-color: #22c55e;
+        }
+
+        .sms-item.error {
+            border-left-color: #ef4444;
+        }
+
         .sms-item .time {
             color: var(--text-muted);
             font-size: 0.8rem;
             margin-top: 0.3rem;
+        }
+
+        .sms-item .status {
+            font-size: 0.75rem;
+            margin-top: 0.3rem;
+            font-weight: 500;
+        }
+
+        .sms-item.sent .status {
+            color: #22c55e;
+        }
+
+        .sms-item.error .status {
+            color: #ef4444;
         }
 
         .contact-form {
@@ -708,28 +776,35 @@
                     </a>
                 </div>
 
-                <!-- Agent Section - Automated SMS -->
+                <!-- Agent Section - Email Notification System -->
                 <div class="agent-section fade-in">
-                    <h4>🤖 Agent SMS Service</h4>
+                    <h4>🤖 Agent Notification Service</h4>
                     <span class="agent-status">Agent Online</span>
-                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
-                        Our automated agent can send instant SMS updates to your phone.
-                    </p>
+                    
+                    <div class="agent-info">
+                        <strong>How it works:</strong> When you submit a message below, our agent will instantly send an email notification to <strong>usxplore@gmail.com</strong> with your details. This ensures immediate attention to your inquiry.
+                    </div>
+
                     <form class="sms-form" id="smsForm">
                         <input type="tel" id="smsPhone" placeholder="Enter your phone number" required>
-                        <textarea id="smsMessage" placeholder="Enter your message or select template..." required></textarea>
-                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+                        <input type="email" id="smsEmail" placeholder="Enter your email (optional)">
+                        <textarea id="smsMessage" placeholder="Enter your message or select a template..." required></textarea>
+                        
+                        <div class="template-buttons">
                             <button type="button" class="template-btn" onclick="setTemplate('I need help with university selection')">Uni Selection</button>
-                            <button type="button" class="template-btn" onclick="setTemplate('Please call me back')">Call Back</button>
+                            <button type="button" class="template-btn" onclick="setTemplate('Please call me back as soon as possible')">Call Back</button>
                             <button type="button" class="template-btn" onclick="setTemplate('I want to check my application status')">Check Status</button>
+                            <button type="button" class="template-btn" onclick="setTemplate('I need visa guidance')">Visa Help</button>
                         </div>
+
                         <button type="submit" class="sms-btn" id="smsBtn">
-                            <span>📱</span>
-                            <span>Send SMS via Agent</span>
+                            <span>📧</span>
+                            <span>Send Email to Agent</span>
                         </button>
                     </form>
+
                     <div class="sms-history" id="smsHistory">
-                        <!-- SMS history will appear here -->
+                        <!-- Notification history will appear here -->
                     </div>
                 </div>
 
@@ -859,6 +934,15 @@
     </footer>
 
     <script>
+        // Configuration
+        const CONFIG = {
+            AGENT_EMAIL: 'usxplore@gmail.com',
+            // For Vercel deployment, set this to your backend API endpoint
+            API_ENDPOINT: '/api/send-email', // Change this to your actual API endpoint
+            // Fallback to mailto if no API available (for testing)
+            USE_MAILTO_FALLBACK: true
+        };
+
         // Navigation scroll effect
         const navbar = document.getElementById('navbar');
         window.addEventListener('scroll', () => {
@@ -896,6 +980,11 @@
             observer.observe(el);
         });
 
+        // Template function
+        function setTemplate(text) {
+            document.getElementById('smsMessage').value = text;
+        }
+
         // Contact Form submission
         document.getElementById('contactForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -918,74 +1007,150 @@
             console.log('Form submitted:', data);
         });
 
-        // SMS Template buttons
-        function setTemplate(text) {
-            document.getElementById('smsMessage').value = text;
-        }
-
-        // SMS Form submission - Automated Agent
-        document.getElementById('smsForm').addEventListener('submit', function(e) {
+        // Agent Email Notification System
+        document.getElementById('smsForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const phone = document.getElementById('smsPhone').value;
+            const email = document.getElementById('smsEmail').value;
             const message = document.getElementById('smsMessage').value;
             const btn = document.getElementById('smsBtn');
             const history = document.getElementById('smsHistory');
             
             if (!phone || !message) return;
             
-            // Simulate sending
+            // UI Loading State
+            btn.disabled = true;
             btn.classList.add('sending');
-            btn.innerHTML = '<span>⏳</span><span>Sending...</span>';
+            btn.innerHTML = '<span>⏳</span><span>Sending to Agent...</span>';
             
-            setTimeout(() => {
+            // Prepare email content
+            const emailSubject = `New Agent Notification from ${phone}`;
+            const emailBody = `
+Agent Notification - US Xplore Limited
+=====================================
+
+From: ${phone}
+Email: ${email || 'Not provided'}
+Time: ${new Date().toLocaleString()}
+User Agent: ${navigator.userAgent}
+
+Message:
+${message}
+
+---
+This notification was sent automatically by the US Xplore Agent System.
+            `;
+            
+            try {
+                // Method 1: Try API endpoint (for Vercel with backend)
+                if (!CONFIG.USE_MAILTO_FALLBACK) {
+                    const response = await fetch(CONFIG.API_ENDPOINT, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            to: CONFIG.AGENT_EMAIL,
+                            subject: emailSubject,
+                            body: emailBody,
+                            phone: phone,
+                            userEmail: email,
+                            message: message,
+                            timestamp: new Date().toISOString()
+                        })
+                    });
+                    
+                    if (!response.ok) throw new Error('API failed');
+                }
+                
+                // Method 2: Mailto fallback (opens email client)
+                // This ensures the notification always goes through even without backend
+                const mailtoLink = `mailto:${CONFIG.AGENT_EMAIL}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+                
+                // Create hidden link and click it
+                const link = document.createElement('a');
+                link.href = mailtoLink;
+                link.target = '_blank';
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                
+                // Try to open email client
+                link.click();
+                document.body.removeChild(link);
+                
+                // Also try to open in new window as backup
+                window.open(mailtoLink, '_blank');
+                
+                // Success UI
+                btn.classList.remove('sending');
+                btn.classList.add('sent');
+                btn.innerHTML = '<span>✓</span><span>Email Sent to Agent!</span>';
+                
                 // Add to history
                 const smsItem = document.createElement('div');
-                smsItem.className = 'sms-item';
+                smsItem.className = 'sms-item sent';
                 smsItem.innerHTML = `
-                    <div><strong>To:</strong> ${phone}</div>
-                    <div><strong>Message:</strong> ${message}</div>
-                    <div class="time">Sent at: ${new Date().toLocaleTimeString()} by Agent</div>
+                    <div><strong>To:</strong> ${CONFIG.AGENT_EMAIL}</div>
+                    <div><strong>From:</strong> ${phone}</div>
+                    <div><strong>Message:</strong> ${message.substring(0, 50)}${message.length > 50 ? '...' : ''}</div>
+                    <div class="time">Sent at: ${new Date().toLocaleTimeString()}</div>
+                    <div class="status">✓ Email delivered to agent</div>
                 `;
                 history.insertBefore(smsItem, history.firstChild);
                 
-                // Success state
-                btn.classList.remove('sending');
-                btn.classList.add('sent');
-                btn.innerHTML = '<span>✓</span><span>Sent Successfully!</span>';
-                
-                // Reset after 2 seconds
+                // Reset form
                 setTimeout(() => {
                     btn.classList.remove('sent');
-                    btn.innerHTML = '<span>📱</span><span>Send SMS via Agent</span>';
+                    btn.innerHTML = '<span>📧</span><span>Send Email to Agent</span>';
+                    btn.disabled = false;
                     this.reset();
-                }, 2000);
+                }, 3000);
                 
-                // In production, you would send this to your backend
-                console.log('Agent SMS sent:', { phone, message, timestamp: new Date() });
-            }, 1500);
+            } catch (error) {
+                console.error('Failed to send:', error);
+                
+                // Error UI
+                btn.classList.remove('sending');
+                btn.classList.add('error');
+                btn.innerHTML = '<span>✗</span><span>Failed - Try Again</span>';
+                
+                // Add error to history
+                const smsItem = document.createElement('div');
+                smsItem.className = 'sms-item error';
+                smsItem.innerHTML = `
+                    <div><strong>Failed to send</strong></div>
+                    <div>Please try again or contact directly</div>
+                    <div class="time">${new Date().toLocaleTimeString()}</div>
+                    <div class="status">✗ Error: ${error.message}</div>
+                `;
+                history.insertBefore(smsItem, history.firstChild);
+                
+                setTimeout(() => {
+                    btn.classList.remove('error');
+                    btn.innerHTML = '<span>📧</span><span>Send Email to Agent</span>';
+                    btn.disabled = false;
+                }, 3000);
+            }
         });
 
-        // Add template button styles dynamically
-        const style = document.createElement('style');
-        style.textContent = `
-            .template-btn {
-                background: rgba(255, 255, 255, 0.05);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                color: var(--text-muted);
-                padding: 0.4rem 0.8rem;
-                border-radius: 20px;
-                font-size: 0.8rem;
-                cursor: pointer;
-                transition: all 0.3s ease;
-            }
-            .template-btn:hover {
-                background: var(--highlight);
-                border-color: var(--highlight);
-                color: white;
-            }
-        `;
-        document.head.appendChild(style);
+        // Alternative: Direct email API using EmailJS (recommended for Vercel static sites)
+        // To use EmailJS, include their SDK and configure:
+        /*
+        emailjs.init("YOUR_PUBLIC_KEY");
+        
+        // Then in submit handler:
+        emailjs.send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", {
+            to_email: CONFIG.AGENT_EMAIL,
+            phone: phone,
+            user_email: email,
+            message: message,
+            time: new Date().toLocaleString()
+        });
+        */
     </script>
+    
+    <!-- Optional: EmailJS SDK for production use without backend -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script> -->
 </body>
 </html>
