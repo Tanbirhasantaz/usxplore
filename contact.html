@@ -782,11 +782,10 @@
                     <span class="agent-status">Agent Online</span>
                     
                     <div class="agent-info">
-                        <strong>How it works:</strong> When you submit a message below, our agent will instantly send an email notification to <strong>usxplore@gmail.com</strong> with your details.
+                        <strong>How it works:</strong> When you submit a message below, our agent will instantly send an email notification to <strong>usxplore@gmail.com</strong> with your details. This ensures immediate attention to your inquiry.
                     </div>
 
                     <form class="sms-form" id="smsForm">
-                        <input type="text" id="smsName" placeholder="Enter your name" required>
                         <input type="tel" id="smsPhone" placeholder="Enter your phone number" required>
                         <input type="email" id="smsEmail" placeholder="Enter your email (optional)">
                         <textarea id="smsMessage" placeholder="Enter your message or select a template..." required></textarea>
@@ -1016,18 +1015,16 @@
         });
 
         // Agent Email Notification System using EmailJS
-        // Matches your template variables: {{name}}, {{phone}}, {{user_email}}, {{message}}, {{time}}
         document.getElementById('smsForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const name = document.getElementById('smsName').value;
             const phone = document.getElementById('smsPhone').value;
             const email = document.getElementById('smsEmail').value;
             const message = document.getElementById('smsMessage').value;
             const btn = document.getElementById('smsBtn');
             const history = document.getElementById('smsHistory');
             
-            if (!name || !phone || !message) return;
+            if (!phone || !message) return;
             
             // UI Loading State
             btn.disabled = true;
@@ -1035,13 +1032,15 @@
             btn.innerHTML = '<span>⏳</span><span>Sending to Agent...</span>';
             
             try {
-                // Send email using EmailJS with variables matching your template
+                // Send email using EmailJS
                 const templateParams = {
-                    name: name,                    // {{name}} in your template
-                    phone: phone,                  // {{phone}} in your template
-                    user_email: email || 'Not provided',  // {{user_email}} in your template
-                    message: message,              // {{message}} in your template
-                    time: new Date().toLocaleString()     // {{time}} in your template
+                    to_email: EMAILJS_CONFIG.AGENT_EMAIL,
+                    from_phone: phone,
+                    from_email: email || 'Not provided',
+                    message: message,
+                    time: new Date().toLocaleString(),
+                    user_agent: navigator.userAgent,
+                    page_url: window.location.href
                 };
                 
                 const response = await emailjs.send(
@@ -1062,7 +1061,7 @@
                 smsItem.className = 'sms-item sent';
                 smsItem.innerHTML = `
                     <div><strong>To:</strong> ${EMAILJS_CONFIG.AGENT_EMAIL}</div>
-                    <div><strong>From:</strong> ${name} (${phone})</div>
+                    <div><strong>From:</strong> ${phone}</div>
                     <div><strong>Message:</strong> ${message.substring(0, 50)}${message.length > 50 ? '...' : ''}</div>
                     <div class="time">Sent at: ${new Date().toLocaleTimeString()}</div>
                     <div class="status">✓ Email delivered via EmailJS (Status: ${response.status})</div>
