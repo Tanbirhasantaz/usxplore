@@ -1077,13 +1077,14 @@
                 
                 console.log('Admin email sent:', adminResponse);
                 
-                // 2. Send auto-reply to user's email
+                // 2. Send auto-reply to user's email - FIXED with user_name parameter
                 const autoReplyParams = {
-                    from_name: 'US Xplore Limited',
-                    reply_to: EMAILJS_CONFIG.ADMIN_EMAIL,
-                    to_email: email,
+                    from_name: 'US Xplore Limited',     // Sender name (company)
+                    reply_to: EMAILJS_CONFIG.ADMIN_EMAIL, // Reply goes to admin
+                    to_email: email,                      // User's email
+                    user_name: name,                      // User's name for greeting
                     phone: phone,
-                    message: `Dear ${name},\n\nThank you for contacting US Xplore Limited!\n\nWe have received your inquiry:\n"${message}"\n\nOur team will get back to you within 24 hours.\n\nBest regards,\nUS Xplore Team\nEmail: usxplore@gmail.com\nPhone: +880 1300-856680`,
+                    message: message,                   // User's original message
                     time: new Date().toLocaleString()
                 };
                 
