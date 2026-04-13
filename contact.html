@@ -742,6 +742,7 @@
             }
         }
     </style>
+<base target="_blank">
 </head>
 <body>
     <!-- Navigation -->
@@ -796,12 +797,12 @@
                     <span class="agent-status">Agent Online</span>
                     
                     <div class="agent-info">
-                        <strong>How it works:</strong> Submit your inquiry below. Our agent will instantly notify <strong>usxplore@gmail.com</strong> and you'll receive an auto-reply confirmation.
+                        <strong>How it works:</strong> Submit your inquiry below. Our agent will instantly notify <strong>usxplore@gmail.com</strong> and you'll receive an auto-reply confirmation at your email.
                     </div>
 
                     <form class="sms-form" id="smsForm">
-                        <input type="text" id="smsName" name="name" placeholder="Enter your full name" required>
-                        <input type="email" id="smsEmail" name="user_email" placeholder="Enter your email (required for auto-reply)" required>
+                        <input type="text" id="smsName" name="from_name" placeholder="Enter your full name" required>
+                        <input type="email" id="smsEmail" name="reply_to" placeholder="Enter your email (required for auto-reply)" required>
                         <input type="tel" id="smsPhone" name="phone" placeholder="Enter your phone number" required>
                         <textarea id="smsMessage" name="message" placeholder="Enter your message or select a template..." required></textarea>
                         
@@ -954,13 +955,13 @@
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     
     <script>
-        // EmailJS Configuration
+        // EmailJS Configuration - UPDATED WITH CORRECT TEMPLATE IDs
         const EMAILJS_CONFIG = {
             PUBLIC_KEY: 'g91glmr4XiGNNqc5e',
             SERVICE_ID: 'service_fsksde5',
-            TEMPLATE_ID: 'template_0c9ftee',
-            REPLY_TEMPLATE_ID: 'template_0c9ftee', // Using same template for reply
-            AGENT_EMAIL: 'usxplore@gmail.com'
+            ADMIN_TEMPLATE_ID: 'template_0c9ftee',      // Contact Us template (for admin notification)
+            AUTO_REPLY_TEMPLATE_ID: 'template_19pwrre',  // Auto-Reply template (for user confirmation)
+            ADMIN_EMAIL: 'usxplore@gmail.com'
         };
 
         // Initialize EmailJS
@@ -1032,7 +1033,7 @@
             console.log('Form submitted:', data);
         });
 
-        // Agent Email System - Fixed to match template variables exactly
+        // Agent Email System - Sends to usxplore@gmail.com + Auto-reply to user
         document.getElementById('smsForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -1045,7 +1046,10 @@
             const autoReplyNotify = document.getElementById('autoReplyNotify');
             const replyEmailSpan = document.getElementById('replyEmail');
             
-            if (!name || !email || !phone || !message) return;
+            if (!name || !email || !phone || !message) {
+                alert('Please fill in all fields');
+                return;
+            }
             
             // UI Loading State
             btn.disabled = true;
@@ -1053,51 +1057,55 @@
             btn.innerHTML = '<span>⏳</span><span>Sending...</span>';
             
             try {
-                // 1. Send notification to usxplore@gmail.com
-                // Variables must match your template: {{name}}, {{user_email}}, {{phone}}, {{message}}, {{time}}
+                // 1. Send notification to admin (usxplore@gmail.com)
                 const adminParams = {
-                    name: name,                    // {{name}} - matches your template
-                    user_email: email,             // {{user_email}} - matches your template
-                    phone: phone,                  // {{phone}} - matches your template
-                    message: message,              // {{message}} - matches your template
-                    time: new Date().toLocaleString()  // {{time}} - matches your template
+                    from_name: name,
+                    reply_to: email,
+                    phone: phone,
+                    message: message,
+                    time: new Date().toLocaleString(),
+                    to_email: EMAILJS_CONFIG.ADMIN_EMAIL
                 };
                 
-                console.log('Sending to admin with params:', adminParams);
+                console.log('Sending admin email with params:', adminParams);
                 
                 const adminResponse = await emailjs.send(
                     EMAILJS_CONFIG.SERVICE_ID,
-                    EMAILJS_CONFIG.TEMPLATE_ID,
+                    EMAILJS_CONFIG.ADMIN_TEMPLATE_ID,
                     adminParams
                 );
                 
-                console.log('Admin email sent successfully:', adminResponse);
+                console.log('Admin email sent:', adminResponse);
                 
-                // 2. Send auto-reply to user
-                let userResponse = null;
+                // 2. Send auto-reply to user's email
+                const autoReplyParams = {
+                    from_name: 'US Xplore Limited',
+                    reply_to: EMAILJS_CONFIG.ADMIN_EMAIL,
+                    to_email: email,
+                    phone: phone,
+                    message: `Dear ${name},\n\nThank you for contacting US Xplore Limited!\n\nWe have received your inquiry:\n"${message}"\n\nOur team will get back to you within 24 hours.\n\nBest regards,\nUS Xplore Team\nEmail: usxplore@gmail.com\nPhone: +880 1300-856680`,
+                    time: new Date().toLocaleString()
+                };
+                
+                console.log('Sending auto-reply with params:', autoReplyParams);
+                
+                let replySuccess = false;
                 try {
-                    const replyParams = {
-                        name: name,
-                        user_email: email,
-                        phone: phone,
-                        message: `Thank you for contacting US Xplore Limited!\n\nWe have received your inquiry:\n"${message}"\n\nOur team will get back to you within 24 hours.\n\nBest regards,\nUS Xplore Team`,
-                        time: new Date().toLocaleString()
-                    };
-                    
-                    userResponse = await emailjs.send(
+                    const replyResponse = await emailjs.send(
                         EMAILJS_CONFIG.SERVICE_ID,
-                        EMAILJS_CONFIG.REPLY_TEMPLATE_ID,
-                        replyParams
+                        EMAILJS_CONFIG.AUTO_REPLY_TEMPLATE_ID,
+                        autoReplyParams
                     );
-                    
-                    console.log('Auto-reply sent successfully:', userResponse);
-                    
-                    // Show auto-reply notification
+                    console.log('Auto-reply sent:', replyResponse);
+                    replySuccess = true;
+                } catch (replyError) {
+                    console.warn('Auto-reply failed:', replyError);
+                }
+                
+                // Show auto-reply notification only if it succeeded
+                if (replySuccess) {
                     replyEmailSpan.textContent = email;
                     autoReplyNotify.classList.add('show');
-                    
-                } catch (replyError) {
-                    console.log('Auto-reply failed:', replyError);
                 }
                 
                 // Success UI
@@ -1109,12 +1117,13 @@
                 const smsItem = document.createElement('div');
                 smsItem.className = 'sms-item sent';
                 smsItem.innerHTML = `
-                    <div><strong>Notification sent to:</strong> ${EMAILJS_CONFIG.AGENT_EMAIL}</div>
-                    <div><strong>From:</strong> ${name} (${phone})</div>
+                    <div><strong>To Admin:</strong> ${EMAILJS_CONFIG.ADMIN_EMAIL}</div>
+                    <div><strong>From:</strong> ${name}</div>
                     <div><strong>Email:</strong> ${email}</div>
+                    <div><strong>Phone:</strong> ${phone}</div>
                     <div><strong>Message:</strong> ${message.substring(0, 50)}${message.length > 50 ? '...' : ''}</div>
                     <div class="time">Sent at: ${new Date().toLocaleTimeString()}</div>
-                    <div class="status">✓ Email delivered successfully</div>
+                    <div class="status">✓ Admin notification delivered${replySuccess ? ' + Auto-reply sent' : ''}</div>
                 `;
                 history.insertBefore(smsItem, history.firstChild);
                 
@@ -1142,7 +1151,7 @@
                     <div><strong>Failed to send</strong></div>
                     <div>Error: ${error.text || error.message || 'Connection error'}</div>
                     <div class="time">${new Date().toLocaleTimeString()}</div>
-                    <div class="status">✗ Please check console for details</div>
+                    <div class="status">✗ Check console for details</div>
                 `;
                 history.insertBefore(smsItem, history.firstChild);
                 
